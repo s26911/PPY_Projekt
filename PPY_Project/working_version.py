@@ -54,7 +54,7 @@ class BattleshipsGame:
         label.config(text=string)
 
     def update_board_size(self, size):
-        self.board_size = size
+        self.board_size = int(size)
 
     def on_field_change(self, var, index, mode):
         self.pvp = True if self.v.get() == "Player vs Player" else False
