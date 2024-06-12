@@ -51,6 +51,9 @@ class BattleshipsGame:
             string += "Size: {}, quantity: {}\n".format(ship_size, self.fleet[ship_size])
         label.config(text=string)
 
+    def update_board_size(self, size):
+        self.board_size = size
+
     def configure_game_ui(self):
         self.clear_frame()
         self.root.geometry("")
@@ -69,13 +72,14 @@ class BattleshipsGame:
         # board size selection container
         board_size_cont = Frame(self.root)
         Label(board_size_cont, text="Select board size:").grid(row=2, column=1, sticky=E)
-        board_size_selector = Scale(board_size_cont, from_=1, to=100, orient=HORIZONTAL)
+        board_size_selector = Scale(board_size_cont, from_=1, to=100, orient=HORIZONTAL, command=self.update_board_size)
+        board_size_selector.set(self.board_size)
         board_size_selector.grid(row=2, column=2, sticky=W)
         board_size_cont.pack()
 
         # label that show your fleet
         ships_string = "Your fleet consists of following ships:\n"
-        for ship_size in self.fleet.keys():
+        for ship_size in sorted(self.fleet.keys(), reverse=True):
             ships_string += "Size: {}, quantity: {}\n".format(ship_size, self.fleet[ship_size])
         ships_label = Label(self.root, text=ships_string)
         ships_label.pack()
@@ -89,12 +93,12 @@ class BattleshipsGame:
         Label(ships_cont, text="Quantity:").grid(row=1, column=2)
         quantity_field = Entry(ships_cont)
         quantity_field.grid(row=1, column=3)
-        Button(ships_cont, text="Add",
-               command=lambda: self.update_fleet(ships_label, True, size_field.get(), quantity_field.get())).grid(row=1,
-                                                                                                                  column=4)
-        Button(ships_cont, text="Remove",
-               command=lambda: self.update_fleet(ships_label, False, size_field.get(), quantity_field.get())).grid(
-            row=1, column=5)
+        (Button(ships_cont, text="Add",
+                command=lambda: self.update_fleet(ships_label, True, size_field.get(), quantity_field.get()))
+         .grid(row=1, column=4))
+        (Button(ships_cont, text="Remove",
+                command=lambda: self.update_fleet(ships_label, False, size_field.get(), quantity_field.get()))
+         .grid(row=1, column=5))
         ships_cont.pack()
 
         # buttons to proceed
