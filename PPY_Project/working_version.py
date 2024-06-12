@@ -8,7 +8,9 @@ class BattleshipsGame:
         self.root = root
         self.root.title("Battleships")
 
-        # standard setup
+        # setup
+        self.v = StringVar()
+        self.pvp = True
         self.board_size = 10
         self.fleet = {5: 1, 4: 1, 3: 2, 2: 1}
 
@@ -54,6 +56,9 @@ class BattleshipsGame:
     def update_board_size(self, size):
         self.board_size = size
 
+    def on_field_change(self, var, index, mode):
+        self.pvp = True if self.v.get() == "Player vs Player" else False
+
     def configure_game_ui(self):
         self.clear_frame()
         self.root.geometry("")
@@ -64,7 +69,8 @@ class BattleshipsGame:
         # mode selection container(Frame)
         mode_selection_cont = Frame(self.root)
         Label(mode_selection_cont, text="Select mode:").grid(row=0, column=0, sticky=E)
-        mode = Combobox(mode_selection_cont, values=["Player vs Player", "Player vs Computer"])
+        self.v.trace_add('write', self.on_field_change)
+        mode = Combobox(mode_selection_cont, textvariable=self.v, values=["Player vs Player", "Player vs Computer"])
         mode.set("Player vs Player")
         mode.grid(row=0, column=1, sticky=W)
         mode_selection_cont.pack()
@@ -105,8 +111,8 @@ class BattleshipsGame:
         proceed_buttons_cont = Frame(self.root)
         next_button = Button(proceed_buttons_cont, text="Next")
         back_button = Button(proceed_buttons_cont, text="Back", command=lambda: self.start_menu_ui())
-        Label(proceed_buttons_cont, text="\nProceed to placing ships or return to main menu").grid(row=0, column=1,
-                                                                                                   columnspan=2)
+        (Label(proceed_buttons_cont, text="\nProceed to placing ships or return to main menu")
+         .grid(row=0, column=1, columnspan=2))
         back_button.grid(row=1, column=0, sticky=W)
         next_button.grid(row=1, column=3, sticky=E)
         proceed_buttons_cont.pack()
