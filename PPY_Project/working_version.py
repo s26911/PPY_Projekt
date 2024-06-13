@@ -42,7 +42,7 @@ class BattleshipsGame:
                     self.fleet.pop(size)
 
     def get_fleet_info(self):
-        string = "Your fleet consists of following ships:\n"
+        string = ""
         for ship_size in sorted(self.fleet.keys(), reverse=True):
             string += "Size: {}, quantity: {}\n".format(ship_size, self.fleet[ship_size])
         return string
@@ -92,7 +92,7 @@ class GUI(Tk):
         board_size_cont.pack()
 
         # label that show your fleet
-        ships_string = self.game.get_fleet_info()
+        ships_string = "Your fleet consists of following ships:\n" + self.game.get_fleet_info()
         ships_label = Label(self, text=ships_string)
         ships_label.pack()
 
@@ -115,7 +115,7 @@ class GUI(Tk):
 
         # buttons to proceed
         proceed_buttons_cont = Frame(self)
-        next_button = Button(proceed_buttons_cont, text="Next")
+        next_button = Button(proceed_buttons_cont, text="Next", command=lambda: self.prepare_battleship_board_ui(self.game.board_size))
         back_button = Button(proceed_buttons_cont, text="Back", command=lambda: self.start_menu_ui())
         (Label(proceed_buttons_cont, text="\nProceed to placing ships or return to main menu")
          .grid(row=0, column=1, columnspan=2))
@@ -125,7 +125,59 @@ class GUI(Tk):
 
     def fleet_change(self, label, mode, size, quantity):
         self.game.update_fleet(mode, size, quantity)
-        label.config(text=self.game.get_fleet_info())
+        label.config(text="Your fleet consists of following ships:\n" + self.game.get_fleet_info())
+
+    def prepare_battleship_board_ui(self, board_size):
+        self.clear_frame()
+        self.geometry("")
+
+        # fleet info
+        ships_string = "Ships remaining:\n" + self.game.get_fleet_info()
+        ships_label = Label(self, text=ships_string)
+        ships_label.pack()
+
+        # canvas representing the game board
+        cols = board_size
+        rows = board_size
+        cell_size = int(400/board_size)
+        canvas = Canvas(self, width=cols * cell_size, height=rows * cell_size)
+        canvas.pack()
+
+        board = []
+        for row in range(rows):
+            row_cells = []
+            for col in range(cols):
+                x1 = col * cell_size
+                y1 = row * cell_size
+                x2 = x1 + cell_size
+                y2 = y1 + cell_size
+                rect = canvas.create_rectangle(x1, y1, x2, y2, fill='white', outline='black')
+                row_cells.append(rect)
+            board.append(row_cells)
+        ship_size = IntVar(value=3)
+
+        # select ship to place
+        ship_selector_cont = Frame(self)
+        Label(ship_selector_cont, text="Select ship size:").grid(row=0, column=0)
+        ship_size_selector = Combobox(ship_selector_cont, textvariable=ship_size,
+                                      values=list(sorted(self.game.fleet.keys(), reverse=True)))
+        ship_size_selector.grid(row=0, column=1)
+        ship_selector_cont.pack()
+
+        # navigation buttons
+        proceed_buttons_cont = Frame(self)
+        if self.game.pvp:
+            next_button = Button(proceed_buttons_cont, text="Next")
+            (Label(proceed_buttons_cont, text="\nProceed to placing ships for Player 2 or go back")
+             .grid(row=0, column=1, columnspan=2))
+        else:
+            next_button = Button(proceed_buttons_cont, text="Play")
+            (Label(proceed_buttons_cont, text="\nProceed to play Battleships or go back")
+             .grid(row=0, column=1, columnspan=2))
+        back_button = Button(proceed_buttons_cont, text="Back", command=lambda: self.configure_game_ui())
+        back_button.grid(row=1, column=0, sticky=W)
+        next_button.grid(row=1, column=3, sticky=E)
+        proceed_buttons_cont.pack()
 
 
 if __name__ == "__main__":
