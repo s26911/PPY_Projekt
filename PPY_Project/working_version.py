@@ -1,3 +1,4 @@
+import random
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Combobox
@@ -157,6 +158,10 @@ class GUI(Tk):
             self.game.game_board_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
         self.available_fleet = copy.copy(self.game.fleet)  # fleet available to place on the board
 
+        if not self.game.pvp:
+            self.game.game_board_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
+            self.computer_battleship_placement()
+
         # fleet info
         ships_string = "Ships remaining:\n" + self.game.get_fleet_info()
         ships_label = Label(self, text=ships_string)
@@ -207,7 +212,7 @@ class GUI(Tk):
                 (Label(proceed_buttons_cont, text="\nProceed to placing ships for Player 2 or go back")
                  .grid(row=0, column=1, columnspan=2))
             else:
-                next_button = Button(proceed_buttons_cont, text="Play", command=self.play_solo_ui)
+                next_button = Button(proceed_buttons_cont, text="Play", command=lambda: self.play_pvp_ui())
                 (Label(proceed_buttons_cont, text="\nProceed to play Battleships or go back")
                  .grid(row=0, column=1, columnspan=2))
         else:
@@ -223,7 +228,7 @@ class GUI(Tk):
                    player_number):
         col = event.x // cell_size
         row = event.y // cell_size
-        if self.can_place_ship(canvas, row, col, ship_size, board, orientation, player_number):
+        if self.can_place_ship(row, col, ship_size, orientation, player_number):
             self.game.add_ship_to_board(row, col, ship_size, orientation, player_number)
             self.update_available_ships(ship_size)
 
@@ -240,16 +245,16 @@ class GUI(Tk):
                     item = board[row + i][col]
                 canvas.itemconfig(item, fill='black')
 
-    def can_place_ship(self, canvas, row, col, ship_size, board, orientation, player_number):
+    def can_place_ship(self, row, col, ship_size, orientation, player_number):
         if len(self.available_fleet) == 0:
             return False
         game_board = self.game.game_board_p1 if player_number == 1 else self.game.game_board_p2
         for i in range(ship_size):
             if orientation == "horizontal":
-                if col + i >= len(board[row]) or game_board[row][col + i] != 0:
+                if col + i >= self.game.board_size or game_board[row][col + i] != 0:
                     return False
             else:
-                if col + i >= len(board[row]) or game_board[row + i][col] != 0:
+                if row + i >= self.game.board_size or game_board[row + i][col] != 0:
                     return False
         return True
 
@@ -295,7 +300,24 @@ class GUI(Tk):
             self.orientation = "vertical" if self.orientation == "horizontal" else "horizontal"
             self.force_paint = True
 
+    def computer_battleship_placement(self):
+        row = random.randint(0, self.game.board_size - 1)
+        col = random.randint(0, self.game.board_size - 1)
+        orientation = "horizontal" if random.randint(0, 1) == 0 else "vertical"
+        available_fleet = copy.copy(self.game.fleet)
+
+        for i in available_fleet.keys():
+            for j in range(available_fleet[i]):
+                while not self.can_place_ship(row, col, i, orientation, 2):
+                    row = random.randint(0, self.game.board_size - 1)
+                    col = random.randint(0, self.game.board_size - 1)
+                    orientation = "horizontal" if random.randint(0, 1) == 0 else "vertical"
+                self.game.add_ship_to_board(row, col, i, orientation, 2)
+
     def play_solo_ui(self):
+        print("placeholder")
+
+    def play_pvp_ui(self):
         print("placeholder")
 
 
