@@ -9,7 +9,8 @@ class BattleshipsGame:
         self.pvp = True
         self.board_size = 10
         self.fleet = {5: 1, 4: 1, 3: 2, 2: 1}
-        self.game_board = [[]]  # 2-dimensional int array, 0:empty, 1:ship, 2:sunken
+        self.game_board_p1 = [[]]  # 2-dimensional int array, 0:empty, 1:ship, 2:sunken
+        self.game_board_p2 = [[]]
 
     def update_board_size(self, size):
         self.board_size = int(size)
@@ -56,10 +57,10 @@ class BattleshipsGame:
     def add_ship_to_board(self, row, column, ship_size, orientation):
         if orientation == "horizontal":
             for i in range(ship_size):
-                self.game_board[row][column + i] = 1
+                self.game_board_p1[row][column + i] = 1
         else:
             for i in range(ship_size):
-                self.game_board[row + i][column] = 1
+                self.game_board_p1[row + i][column] = 1
 
 
 class GUI(Tk):
@@ -72,6 +73,7 @@ class GUI(Tk):
         self.title("Battleships")
         self.start_menu_ui()
         self.last_hovered = (0, 0)
+        self.force_paint = False
 
     def start_menu_ui(self):
         self.clear_frame()
@@ -148,7 +150,7 @@ class GUI(Tk):
     def prepare_battleship_board_ui(self, board_size):
         self.clear_frame()
         self.geometry("")
-        self.game.game_board = [[0 for _ in range(board_size)] for _ in range(board_size)]
+        self.game.game_board_p1 = [[0 for _ in range(board_size)] for _ in range(board_size)]
         self.available_fleet = copy.copy(self.game.fleet)  # fleet available to place on the board
 
         # fleet info
@@ -181,11 +183,13 @@ class GUI(Tk):
         (canvas.bind("<Motion>", lambda event:
         self.hover_color(event, canvas, cell_size, board, self.ship_size.get(), self.orientation)))
 
+        self.bind("<Key>", lambda event: self.rotate_ship(event, canvas, board, self.ship_size.get()))
+
         # select ship to place
         ship_selector_cont = Frame(self)
         Label(ship_selector_cont, text="Select ship size:").grid(row=0, column=0)
         ship_size_selector = Combobox(ship_selector_cont, textvariable=self.ship_size,
-                                      values=list(sorted(self.game.fleet.keys(), reverse=True)))
+                                      values=list(sorted(self.game.fleet.keys(), reverse=True)), state="readonly")
         ship_size_selector.grid(row=0, column=1)
         self.ship_size.set(int(ship_size_selector["values"][0]))
         ship_selector_cont.pack()
@@ -253,7 +257,9 @@ class GUI(Tk):
         col = col - 1 if col == self.game.board_size else col
         row = row - 1 if row == self.game.board_size else row
 
-        if self.last_hovered != (row, col):
+        if self.last_hovered != (row, col) or self.force_paint:
+            if self.force_paint:
+                self.force_paint = False
             prev_row, prev_col = self.last_hovered
             self.last_hovered = (row, col)
             self.paint(prev_row, prev_col, canvas, cells, ship_size, orientation, 'gray', 'white')
@@ -270,6 +276,11 @@ class GUI(Tk):
             if canvas.itemcget(item, 'fill') == previous_color:
                 canvas.itemconfig(item, fill=new_color)
 
+    def rotate_ship(self, event, canvas, cells, ship_size):
+        if event.keysym in ["r", "R"]:
+            self.paint(self.last_hovered[0], self.last_hovered[1], canvas, cells, ship_size, self.orientation, "gray", "white")
+            self.orientation = "vertical" if self.orientation == "horizontal" else "horizontal"
+            self.force_paint = True
 
 if __name__ == "__main__":
     game = BattleshipsGame()
