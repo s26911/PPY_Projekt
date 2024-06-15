@@ -71,6 +71,7 @@ class GUI(Tk):
         self.available_fleet = {}
         self.title("Battleships")
         self.start_menu_ui()
+        self.last_hovered = (0, 0)
 
     def start_menu_ui(self):
         self.clear_frame()
@@ -175,7 +176,10 @@ class GUI(Tk):
             board.append(row_cells)
 
         (canvas.bind("<Button-1>", lambda event:
-        self.place_ship(event, canvas, cell_size, board, self.ship_size.get(), self.orientation, ships_label, ship_size_selector)))
+        self.place_ship(event, canvas, cell_size, board, self.ship_size.get(), self.orientation, ships_label,
+                        ship_size_selector)))
+        (canvas.bind("<Motion>", lambda event:
+        self.hover_color(event, canvas, cell_size, board, self.ship_size.get(), self.orientation)))
 
         # select ship to place
         ship_selector_cont = Frame(self)
@@ -221,9 +225,6 @@ class GUI(Tk):
                     item = board[row + i][col]
                 canvas.itemconfig(item, fill='black')
 
-            #     hover_state["clicked"][(row, col + i) if orientation[0] == "horizontal" else (row + i, col)] = True
-            # ships.append((row, col, ship_size, orientation[0]))
-
     def can_place_ship(self, canvas, row, col, ship_size, board, orientation):
         if len(self.available_fleet) == 0:
             return False
@@ -242,6 +243,33 @@ class GUI(Tk):
             self.available_fleet[ship_size] = qty - 1
         else:
             self.available_fleet.pop(ship_size)
+
+    def hover_color(self, event, canvas, cell_size, cells, ship_size, orientation):
+        if len(self.available_fleet) == 0:
+            return
+
+        col = event.x // cell_size
+        row = event.y // cell_size
+        col = col - 1 if col == self.game.board_size else col
+        row = row - 1 if row == self.game.board_size else row
+
+        if self.last_hovered != (row, col):
+            prev_row, prev_col = self.last_hovered
+            self.last_hovered = (row, col)
+            self.paint(prev_row, prev_col, canvas, cells, ship_size, orientation, 'gray', 'white')
+            self.paint(row, col, canvas, cells, ship_size, orientation, 'white', 'gray')
+
+    def paint(self, row, col, canvas, cells, ship_size, orientation, previous_color, new_color):
+        for i in range(ship_size):
+            if orientation == "horizontal" and col + i < len(cells[row]):
+                item = cells[row][col + i]
+            elif orientation == "vertical" and row + i < len(cells):
+                item = cells[row + i][col]
+            else:
+                continue
+            if canvas.itemcget(item, 'fill') == previous_color:
+                canvas.itemconfig(item, fill=new_color)
+
 
 if __name__ == "__main__":
     game = BattleshipsGame()
