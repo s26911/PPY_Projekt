@@ -54,13 +54,14 @@ class BattleshipsGame:
             string += "Size: {}, quantity: {}\n".format(ship_size, fleet[ship_size])
         return string
 
-    def add_ship_to_board(self, row, column, ship_size, orientation):
+    def add_ship_to_board(self, row, column, ship_size, orientation, player_number):
+        game_board = self.game_board_p1 if player_number == 1 else self.game_board_p2
         if orientation == "horizontal":
             for i in range(ship_size):
-                self.game_board_p1[row][column + i] = 1
+                game_board[row][column + i] = 1
         else:
             for i in range(ship_size):
-                self.game_board_p1[row + i][column] = 1
+                game_board[row + i][column] = 1
 
 
 class GUI(Tk):
@@ -135,7 +136,7 @@ class GUI(Tk):
         # buttons to proceed
         proceed_buttons_cont = Frame(self)
         next_button = Button(proceed_buttons_cont, text="Next",
-                             command=lambda: self.prepare_battleship_board_ui(self.game.board_size))
+                             command=lambda: self.prepare_battleship_board_ui(self.game.board_size, 1))
         back_button = Button(proceed_buttons_cont, text="Back", command=lambda: self.start_menu_ui())
         (Label(proceed_buttons_cont, text="\nProceed to placing ships or return to main menu")
          .grid(row=0, column=1, columnspan=2))
@@ -147,10 +148,13 @@ class GUI(Tk):
         self.game.update_fleet(mode, size, quantity)
         label.config(text="Your fleet consists of following ships:\n" + self.game.get_fleet_info())
 
-    def prepare_battleship_board_ui(self, board_size):
+    def prepare_battleship_board_ui(self, board_size, player_number):
         self.clear_frame()
         self.geometry("")
-        self.game.game_board_p1 = [[0 for _ in range(board_size)] for _ in range(board_size)]
+        if player_number == 1:
+            self.game.game_board_p1 = [[0 for _ in range(board_size)] for _ in range(board_size)]
+        else:
+            self.game.game_board_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
         self.available_fleet = copy.copy(self.game.fleet)  # fleet available to place on the board
 
         # fleet info
@@ -179,7 +183,7 @@ class GUI(Tk):
 
         (canvas.bind("<Button-1>", lambda event:
         self.place_ship(event, canvas, cell_size, board, self.ship_size.get(), self.orientation, ships_label,
-                        ship_size_selector)))
+                        ship_size_selector, player_number)))
         (canvas.bind("<Motion>", lambda event:
         self.hover_color(event, canvas, cell_size, board, self.ship_size.get(), self.orientation)))
 
@@ -197,11 +201,17 @@ class GUI(Tk):
         # navigation buttons
         proceed_buttons_cont = Frame(self)
         if self.game.pvp:
-            next_button = Button(proceed_buttons_cont, text="Next")
-            (Label(proceed_buttons_cont, text="\nProceed to placing ships for Player 2 or go back")
-             .grid(row=0, column=1, columnspan=2))
+            if player_number == 1:
+                next_button = Button(proceed_buttons_cont, text="Next",
+                                     command=lambda: self.prepare_battleship_board_ui(self.game.board_size, 2))
+                (Label(proceed_buttons_cont, text="\nProceed to placing ships for Player 2 or go back")
+                 .grid(row=0, column=1, columnspan=2))
+            else:
+                next_button = Button(proceed_buttons_cont, text="Play", command=self.play_solo_ui)
+                (Label(proceed_buttons_cont, text="\nProceed to play Battleships or go back")
+                 .grid(row=0, column=1, columnspan=2))
         else:
-            next_button = Button(proceed_buttons_cont, text="Play")
+            next_button = Button(proceed_buttons_cont, text="Play", command=lambda: self.play_solo_ui())
             (Label(proceed_buttons_cont, text="\nProceed to play Battleships or go back")
              .grid(row=0, column=1, columnspan=2))
         back_button = Button(proceed_buttons_cont, text="Back", command=lambda: self.configure_game_ui())
@@ -209,11 +219,12 @@ class GUI(Tk):
         next_button.grid(row=1, column=3, sticky=E)
         proceed_buttons_cont.pack()
 
-    def place_ship(self, event, canvas, cell_size, board, ship_size, orientation, ships_label, ship_size_selector):
+    def place_ship(self, event, canvas, cell_size, board, ship_size, orientation, ships_label, ship_size_selector,
+                   player_number):
         col = event.x // cell_size
         row = event.y // cell_size
-        if self.can_place_ship(canvas, row, col, ship_size, board, orientation):
-            self.game.add_ship_to_board(row, col, ship_size, orientation)
+        if self.can_place_ship(canvas, row, col, ship_size, board, orientation, player_number):
+            self.game.add_ship_to_board(row, col, ship_size, orientation, player_number)
             self.update_available_ships(ship_size)
 
             ship_size_selector.config(value=list(sorted(self.available_fleet.keys(), reverse=True)))
@@ -229,15 +240,16 @@ class GUI(Tk):
                     item = board[row + i][col]
                 canvas.itemconfig(item, fill='black')
 
-    def can_place_ship(self, canvas, row, col, ship_size, board, orientation):
+    def can_place_ship(self, canvas, row, col, ship_size, board, orientation, player_number):
         if len(self.available_fleet) == 0:
             return False
+        game_board = self.game.game_board_p1 if player_number == 1 else self.game.game_board_p2
         for i in range(ship_size):
             if orientation == "horizontal":
-                if col + i >= len(board[row]) or canvas.itemcget(board[row][col + i], 'fill') == 'black':
+                if col + i >= len(board[row]) or game_board[row][col + i] != 0:
                     return False
             else:
-                if row + i >= len(board) or canvas.itemcget(board[row + i][col], 'fill') == 'black':
+                if col + i >= len(board[row]) or game_board[row + i][col] != 0:
                     return False
         return True
 
@@ -278,9 +290,14 @@ class GUI(Tk):
 
     def rotate_ship(self, event, canvas, cells, ship_size):
         if event.keysym in ["r", "R"]:
-            self.paint(self.last_hovered[0], self.last_hovered[1], canvas, cells, ship_size, self.orientation, "gray", "white")
+            self.paint(self.last_hovered[0], self.last_hovered[1], canvas, cells, ship_size, self.orientation, "gray",
+                       "white")
             self.orientation = "vertical" if self.orientation == "horizontal" else "horizontal"
             self.force_paint = True
+
+    def play_solo_ui(self):
+        print("placeholder")
+
 
 if __name__ == "__main__":
     game = BattleshipsGame()
