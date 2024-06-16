@@ -314,13 +314,11 @@ class GUI(Tk):
 
     def show_player_change_ui(self, player_number):
         self.clear_frame()
-        self.geometry("300x300")
-        label = Label(self, text="Player {} move\nClick next...".format(player_number), justify="center", height=10,
-                      font=("Arial", 16))
-        next_button = Button(self, text="Next", command=lambda: self.play_pvp_ui(player_number))
-
-        next_button.pack(side=BOTTOM)
-        label.pack()
+        self.geometry("300x350")
+        Label(self, text="Player {} move\nClick next...".format(player_number), justify="center", height=10,
+              font=("Arial", 16)).pack()
+        Button(self, text="Next", command=lambda: self.play_pvp_ui(player_number)).pack()
+        Button(self, text="Save and quit to menu", command=lambda: self.save_and_menu(player_number)).pack()
 
     def paint_game_board(self, canvas, board, only_shots, player_number):
         board_data = self.game.game_board_data_p1 if player_number == 1 else self.game.game_board_data_p2
@@ -333,8 +331,8 @@ class GUI(Tk):
                         x1, y1 = j * cell_size, i * cell_size
                         x2, y2 = (j + 1) * cell_size, (i + 1) * cell_size
                         if board_data[i][j] == 1:
-                            canvas.create_line(x1,y1,x2,y2,fill='red', width=2)
-                            canvas.create_line(x1,y2,x2,y1,fill='red', width=2)
+                            canvas.create_line(x1, y1, x2, y2, fill='red', width=2)
+                            canvas.create_line(x1, y2, x2, y1, fill='red', width=2)
                         else:
                             canvas.create_line(x1, y1, x2, y2, fill='gray', width=2)
                             canvas.create_line(x1, y2, x2, y1, fill='gray', width=2)
@@ -406,6 +404,11 @@ class GUI(Tk):
     def quit_game(self):
         self.game.save_leaderboard("leaderboard.txt")
         self.destroy()
+
+    def save_and_menu(self, player_number):
+        self.game.save_game(player_number, "name1")
+        self.start_menu_ui()
+
 
 if __name__ == "__main__":
     game = BattleshipsGame()

@@ -116,3 +116,31 @@ class BattleshipsGame:
         with open(file_name, 'w') as f:
             for player in self.leaderboard.keys():
                 f.write(player + " " + str(self.leaderboard[player]) + "\n")
+
+    def save_game(self, player_number, save_name):
+        with open("saves.txt", 'w') as f:
+            f.write(save_name + "\n")
+            f.write(str(player_number) + "\n")
+            f.write("1\n" if self.pvp == True else "0\n")
+            f.write(str(self.board_size) + "\n")
+            f.write(str(self.dict_to_save_form(self.fleet)) + "\n")
+            f.write(self.two_dim_arr_to_save_form(self.game_board_data_p1) + "\n")
+            f.write(self.two_dim_arr_to_save_form(self.game_board_data_p2) + "\n")
+            f.write(self.two_dim_arr_to_save_form(self.shots_p1) + "\n")
+            f.write(self.two_dim_arr_to_save_form(self.shots_p2) + "\n")
+            f.write(str(self.ships_alive_p1) + "\n")
+            f.write(str(self.ships_alive_p2) + "\n")
+
+    def dict_to_save_form(self, dict):
+        out = ""
+        for key, value in dict.items():
+            out += str(key) + " " + str(value) + "\t"
+        return out
+
+    def two_dim_arr_to_save_form(self, arr):
+        out = ""
+        for row in range(len(arr)):
+            for col in range(len(arr[row])):
+                out += str(arr[row][col]) + " "
+            out += "\t"
+        return out
