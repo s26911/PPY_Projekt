@@ -1,3 +1,4 @@
+import json
 from tkinter import messagebox
 
 
@@ -110,3 +111,8 @@ class BattleshipsGame:
             self.leaderboard[player_name] = 1
         else:
             self.leaderboard[player_name] += 1
+
+    def save_leaderboard(self, file_name):
+        with open(file_name, 'w') as f:
+            for player in self.leaderboard.keys():
+                f.write(player + " " + str(self.leaderboard[player]) + "\n")

@@ -25,6 +25,7 @@ class GUI(Tk):
         Button(self, text="Start new game", command=lambda: self.configure_game_ui()).pack(pady=5)
         Button(self, text="Load game").pack(pady=5)
         Button(self, text="Show leaderboard", command=self.show_leaderboard_ui).pack(pady=5)
+        Button(self, text="Quit", command=self.quit_game).pack(pady=5)
 
     def clear_frame(self):
         for widget in self.winfo_children():
@@ -402,6 +403,9 @@ class GUI(Tk):
         back = Button(popup, text="Back", command=popup.destroy)
         back.pack()
 
+    def quit_game(self):
+        self.game.save_leaderboard("leaderboard.txt")
+        self.destroy()
 
 if __name__ == "__main__":
     game = BattleshipsGame()
