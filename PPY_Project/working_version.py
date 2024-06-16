@@ -168,23 +168,9 @@ class GUI(Tk):
         ships_label.pack()
 
         # canvas representing the game board
-        cols = board_size
-        rows = board_size
         cell_size = int(400 / board_size)
-        canvas = Canvas(self, width=cols * cell_size, height=rows * cell_size)
+        canvas, board = self.init_canvas(cell_size)
         canvas.pack()
-
-        board = []
-        for row in range(rows):
-            row_cells = []
-            for col in range(cols):
-                x1 = col * cell_size
-                y1 = row * cell_size
-                x2 = x1 + cell_size
-                y2 = y1 + cell_size
-                rect = canvas.create_rectangle(x1, y1, x2, y2, fill='white', outline='black')
-                row_cells.append(rect)
-            board.append(row_cells)
 
         (canvas.bind("<Button-1>", lambda event:
         self.place_ship(event, canvas, cell_size, board, self.ship_size.get(), self.orientation, ships_label,
@@ -212,7 +198,8 @@ class GUI(Tk):
                 (Label(proceed_buttons_cont, text="\nProceed to placing ships for Player 2 or go back")
                  .grid(row=0, column=1, columnspan=2))
             else:
-                next_button = Button(proceed_buttons_cont, text="Play", command=lambda: self.play_pvp_ui())
+                next_button = Button(proceed_buttons_cont, text="Play",
+                                     command=lambda: self.show_player_change_ui(1))
                 (Label(proceed_buttons_cont, text="\nProceed to play Battleships or go back")
                  .grid(row=0, column=1, columnspan=2))
         else:
@@ -317,8 +304,55 @@ class GUI(Tk):
     def play_solo_ui(self):
         print("placeholder")
 
-    def play_pvp_ui(self):
-        print("placeholder")
+    def play_pvp_ui(self, player_number):
+        self.clear_frame()
+        self.geometry("")
+        cell_size = int(400 / self.game.board_size)
+
+        info = Label(self, text="Player " + str(player_number) + " turn")
+        player_board_info = Label(self, text="Your board:")
+        opp_board_info = Label(self, text="Opponent's board:")
+        info.grid(column=0, row=0, columnspan=2)
+        player_board_info.grid(column=0, row=1)
+        opp_board_info.grid(column=1, row=1)
+
+        canvas_player, board_player = self.init_canvas(cell_size)
+        canvas_opp, board_opp = self.init_canvas(cell_size)
+        canvas_player.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        canvas_opp.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+
+        next_button = Button(self, text="Next turn",
+                             command=lambda: self.show_player_change_ui(2 if player_number == 1 else 1))
+        next_button.grid(column=0, row=3, columnspan=2, padx=10, pady=10)
+
+    def init_canvas(self, cell_size):
+        cols = self.game.board_size
+        rows = self.game.board_size
+        canvas = Canvas(self, width=cols * cell_size, height=rows * cell_size)
+
+        board = []
+        for row in range(rows):
+            row_cells = []
+            for col in range(cols):
+                x1 = col * cell_size
+                y1 = row * cell_size
+                x2 = x1 + cell_size
+                y2 = y1 + cell_size
+                rect = canvas.create_rectangle(x1, y1, x2, y2, fill='white', outline='black')
+                row_cells.append(rect)
+            board.append(row_cells)
+
+        return canvas, board
+
+    def show_player_change_ui(self, player_number):
+        self.clear_frame()
+        self.geometry("300x300")
+        label = Label(self, text="Player {} move\nClick next...".format(player_number), justify="center", height=10,
+                      font=("Arial", 16))
+        next_button = Button(self, text="Next", command=lambda: self.play_pvp_ui(player_number))
+
+        next_button.pack(side=BOTTOM)
+        label.pack()
 
 
 if __name__ == "__main__":
