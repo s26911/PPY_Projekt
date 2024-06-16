@@ -329,25 +329,29 @@ class GUI(Tk):
             for i in range(self.game.board_size):
                 for j in range(self.game.board_size):
                     if shots[i][j] == 1:
+                        x1, y1 = j * cell_size, i * cell_size
+                        x2, y2 = (j + 1) * cell_size, (i + 1) * cell_size
                         if board_data[i][j] == 1:
-                            canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
-                                               fill='red', font=("Arial", 16))
+                            canvas.create_line(x1,y1,x2,y2,fill='red', width=2)
+                            canvas.create_line(x1,y2,x2,y1,fill='red', width=2)
                         else:
-                            canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
-                                               fill='gray', font=("Arial", 16))
+                            canvas.create_line(x1, y1, x2, y2, fill='gray', width=2)
+                            canvas.create_line(x1, y2, x2, y1, fill='gray', width=2)
         else:
             for i in range(self.game.board_size):
                 for j in range(self.game.board_size):
+                    x1, y1 = j * cell_size, i * cell_size
+                    x2, y2 = (j + 1) * cell_size, (i + 1) * cell_size
                     cell = board[i][j]
                     if board_data[i][j] == 1:
                         canvas.itemconfig(cell, fill='black')
                         if shots[i][j] == 1:
-                            canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
-                                               fill='red', font=("Arial", 16))
+                            canvas.create_line(x1, y1, x2, y2, fill='red', width=2)
+                            canvas.create_line(x1, y2, x2, y1, fill='red', width=2)
 
                     elif shots[i][j] == 1:
-                        canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
-                                           fill='gray', font=("Arial", 16))
+                        canvas.create_line(x1, y1, x2, y2, fill='gray', width=2)
+                        canvas.create_line(x1, y2, x2, y1, fill='gray', width=2)
 
     def shoot(self, event, canvas, board, player_number):
         if not self.player_can_shoot:
@@ -397,6 +401,7 @@ class GUI(Tk):
         data.pack()
         back = Button(popup, text="Back", command=popup.destroy)
         back.pack()
+
 
 if __name__ == "__main__":
     game = BattleshipsGame()
