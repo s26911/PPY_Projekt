@@ -104,3 +104,9 @@ class BattleshipsGame:
         except FileNotFoundError:
             with open(file_name, 'w') as f:
                 return
+
+    def add_to_leaderboard(self, player_name):
+        if player_name not in self.leaderboard.keys():
+            self.leaderboard[player_name] = 1
+        else:
+            self.leaderboard[player_name] += 1

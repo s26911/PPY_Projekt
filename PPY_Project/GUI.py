@@ -1,7 +1,7 @@
 import random
 from tkinter import *
 from tkinter import messagebox
-from tkinter.ttk import Combobox
+from tkinter.ttk import Combobox, Treeview
 import copy
 from BattleshipsGame import BattleshipsGame
 
@@ -21,9 +21,10 @@ class GUI(Tk):
 
     def start_menu_ui(self):
         self.clear_frame()
-        self.geometry("200x100")
+        self.geometry("300x200")
         Button(self, text="Start new game", command=lambda: self.configure_game_ui()).pack(pady=5)
         Button(self, text="Load game").pack(pady=5)
+        Button(self, text="Show leaderboard", command=self.show_leaderboard_ui).pack(pady=5)
 
     def clear_frame(self):
         for widget in self.winfo_children():
@@ -362,15 +363,40 @@ class GUI(Tk):
         game_over = self.game.shoot(row, col, player_number)
         self.paint_game_board(canvas, board, True, player_number)
         if game_over:
-            self.game_over(player_number)
+            self.game_over(1 if player_number == 2 else 2)
 
     def game_over(self, player_number):
         self.clear_frame()
         self.geometry("")
 
-        label = Label(self, text="Game Over\nPlayer {} won!".format(player_number), justify="center", height=10)
+        label = Label(self, text="Player {} won!\nPlease input your name:".format(player_number), justify="center",
+                      height=10)
         label.pack()
 
+        name_input = Entry(self, justify="center")
+        name_input.pack()
+
+        button = Button(self, text="Proceed", command=lambda: self.add_to_leaderboard(name_input.get()))
+        button.pack()
+        show_leaderboard_button = Button(self, text="Show leaderboard", command=lambda: self.show_leaderboard_ui())
+        show_leaderboard_button.pack()
+
+    def add_to_leaderboard(self, player_name):
+        if player_name != "":
+            self.game.add_to_leaderboard(player_name)
+        self.start_menu_ui()
+
+    def show_leaderboard_ui(self):
+        popup = Toplevel(self)
+        data = Treeview(popup, columns=("Player Name", "Wins"), show="headings")
+        data.heading("Player Name", text="Player Name")
+        data.heading("Wins", text="Wins")
+        for i in sorted(self.game.leaderboard.items(), key=lambda item: item[1]):
+            data.insert("", END, values=(i[0], i[1]))
+
+        data.pack()
+        back = Button(popup, text="Back", command=popup.destroy)
+        back.pack()
 
 if __name__ == "__main__":
     game = BattleshipsGame()
