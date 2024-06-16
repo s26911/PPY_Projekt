@@ -23,7 +23,7 @@ class GUI(Tk):
         self.clear_frame()
         self.geometry("300x200")
         Button(self, text="Start new game", command=lambda: self.configure_game_ui()).pack(pady=5)
-        Button(self, text="Load game").pack(pady=5)
+        Button(self, text="Load game", command=self.load_save_ui).pack(pady=5)
         Button(self, text="Show leaderboard", command=self.show_leaderboard_ui).pack(pady=5)
         Button(self, text="Quit", command=self.quit_game).pack(pady=5)
 
@@ -250,6 +250,7 @@ class GUI(Tk):
     def play_solo_ui(self):
         self.clear_frame()
         self.geometry("")
+        self.unbind("<Key")
         cell_size = int(400 / self.game.board_size)
 
         player_board_info = Label(self, text="Your board:")
@@ -315,10 +316,11 @@ class GUI(Tk):
     def show_player_change_ui(self, player_number):
         self.clear_frame()
         self.geometry("300x350")
+        self.unbind("<Key>")
         Label(self, text="Player {} move\nClick next...".format(player_number), justify="center", height=10,
               font=("Arial", 16)).pack()
         Button(self, text="Next", command=lambda: self.play_pvp_ui(player_number)).pack()
-        Button(self, text="Save and quit to menu", command=lambda: self.save_and_menu(player_number)).pack()
+        Button(self, text="Save and quit to menu", command=lambda: self.save_game_ui(player_number)).pack()
 
     def paint_game_board(self, canvas, board, only_shots, player_number):
         board_data = self.game.game_board_data_p1 if player_number == 1 else self.game.game_board_data_p2
@@ -394,7 +396,7 @@ class GUI(Tk):
         data = Treeview(popup, columns=("Player Name", "Wins"), show="headings")
         data.heading("Player Name", text="Player Name")
         data.heading("Wins", text="Wins")
-        for i in sorted(self.game.leaderboard.items(), key=lambda item: item[1]):
+        for i in sorted(self.game.leaderboard.items(), key=lambda item: item[1], reverse=True):
             data.insert("", END, values=(i[0], i[1]))
 
         data.pack()
@@ -405,9 +407,37 @@ class GUI(Tk):
         self.game.save_leaderboard("leaderboard.txt")
         self.destroy()
 
-    def save_and_menu(self, player_number):
-        self.game.save_game(player_number, "name1")
-        self.start_menu_ui()
+    def save_game_ui(self, player_number):
+        self.clear_frame()
+        self.geometry("300x300")
+        Label(self, text="Provide a name for a game save", justify="center").pack()
+        name_input = Entry(self, justify="center")
+        name_input.pack()
+        Button(self, text="Next", command=lambda: self.save_game(player_number, name_input.get())).pack()
+
+    def save_game(self, player_number, name):
+        if name not in self.game.list_game_saves():
+            self.game.save_game(player_number, name)
+            self.start_menu_ui()
+        else:
+            messagebox.showerror("Name not unique", "Save with given name already exists!\nTry again...")
+
+    def load_save_ui(self):
+        self.clear_frame()
+        self.geometry("300x300")
+
+        saves = Listbox(self, justify="center")
+        for i in self.game.list_game_saves():
+            saves.insert(END, i)
+        saves.pack()
+        play_button = Button(self, text="Play", command=lambda: self.prepare_game_from_save(saves.get(ACTIVE)))
+        back_button = Button(self, text="Back", command=self.start_menu_ui)
+        play_button.pack()
+        back_button.pack()
+
+    def prepare_game_from_save(self, save_name):
+        self.game, player_number = game.game_from_save(save_name)
+        self.show_player_change_ui(player_number)
 
 
 if __name__ == "__main__":

@@ -118,7 +118,7 @@ class BattleshipsGame:
                 f.write(player + " " + str(self.leaderboard[player]) + "\n")
 
     def save_game(self, player_number, save_name):
-        with open("saves.txt", 'w') as f:
+        with open("saves.txt", 'a') as f:
             f.write(save_name + "\n")
             f.write(str(player_number) + "\n")
             f.write("1\n" if self.pvp == True else "0\n")
@@ -143,4 +143,63 @@ class BattleshipsGame:
             for col in range(len(arr[row])):
                 out += str(arr[row][col]) + " "
             out += "\t"
+        return out
+
+    def list_game_saves(self):
+        out = []
+        with open("saves.txt", 'r') as f:
+            lines = f.readlines()
+            i = 0
+            try:
+                while True:
+                    out.append(lines[i].strip())
+                    i += 11
+            except IndexError:
+                None
+        return out
+
+    def game_from_save(self, save_name):
+        game = BattleshipsGame()
+        data = []
+        with open("saves.txt", 'r') as f:
+            lines = f.readlines()
+            i = 0
+            try:
+                while True:
+                    if lines[i].strip() == save_name:
+                        for j in range(i, i + 11):
+                            data.append(lines[j].strip())
+                        break
+                    i = i + 11
+            except IndexError:
+                print("Corrupted save file!")
+                return
+
+        player_number = int(data[1])
+        game.pvp = (data[2] == "1")
+        game.board_size = int(data[3])
+        game.fleet = self.dict_from_save_form(data[4])
+        game.game_board_data_p1 = self.two_dim_arr_from_save_form(data[5])
+        game.game_board_data_p2 = self.two_dim_arr_from_save_form(data[6])
+        game.shots_p1 = self.two_dim_arr_from_save_form(data[7])
+        game.shots_p2 = self.two_dim_arr_from_save_form(data[8])
+        game.ships_alive_p1 = (None if data[9] == "None" else int(data[9]))
+        game.ships_alive_p2 = (None if data[10] == "None" else int(data[10]))
+
+        return game, player_number
+
+    def dict_from_save_form(self, text):
+        out = {}
+        for i in text.split("\t"):
+            items = i.split(" ")
+            out[items[0]] = int(items[1])
+        return out
+
+    def two_dim_arr_from_save_form(self, text):
+        out = []
+        for i in text.split("\t"):
+            row = []
+            for j in i.strip().split(" "):
+                row.append(int(j))
+            out.append(row)
         return out
