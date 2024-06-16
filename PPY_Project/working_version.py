@@ -78,6 +78,7 @@ class GUI(Tk):
         self.start_menu_ui()
         self.last_hovered = (0, 0)
         self.force_paint = False
+        self.player_can_shoot = True
 
     def start_menu_ui(self):
         self.clear_frame()
@@ -326,6 +327,7 @@ class GUI(Tk):
     def play_pvp_ui(self, player_number):
         self.clear_frame()
         self.geometry("")
+        self.player_can_shoot = True
         cell_size = int(400 / self.game.board_size)
 
         info = Label(self, text="Player " + str(player_number) + " turn")
@@ -340,8 +342,11 @@ class GUI(Tk):
         canvas_player.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         canvas_opp.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
-        self.paint_game_board(canvas_player, board_player, False, 1, 2)
-        self.paint_game_board(canvas_opp, board_opp, True, 2, 1)
+        canvas_opp.bind("<Button-1>",
+                        lambda event: self.shoot(event, canvas_opp, board_opp, 2 if player_number == 1 else 1))
+
+        self.paint_game_board(canvas_player, board_player, False, player_number)
+        self.paint_game_board(canvas_opp, board_opp, True, 2 if player_number == 1 else 1)
 
         next_button = Button(self, text="Next turn",
                              command=lambda: self.show_player_change_ui(2 if player_number == 1 else 1))
@@ -376,9 +381,9 @@ class GUI(Tk):
         next_button.pack(side=BOTTOM)
         label.pack()
 
-    def paint_game_board(self, canvas, board, only_shots, player_number_ships, player_number_shots):
-        board_data = self.game.game_board_data_p1 if player_number_ships == 1 else self.game.game_board_data_p2
-        shots = self.game.shots_p1 if player_number_shots == 1 else self.game.shots_p2
+    def paint_game_board(self, canvas, board, only_shots, player_number):
+        board_data = self.game.game_board_data_p1 if player_number == 1 else self.game.game_board_data_p2
+        shots = self.game.shots_p2 if player_number == 1 else self.game.shots_p1
         cell_size = int(400 / self.game.board_size)
         if only_shots:
             for i in range(self.game.board_size):
@@ -403,6 +408,18 @@ class GUI(Tk):
                     elif shots[i][j] == 1:
                         canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
                                            fill='gray', font=("Arial", 16))
+
+    def shoot(self, event, canvas, board, player_number):
+        if not self.player_can_shoot:
+            return
+
+        self.player_can_shoot = False
+        cell_size = int(400 / self.game.board_size)
+        col = event.x // cell_size
+        row = event.y // cell_size
+        shots = self.game.shots_p1 if player_number == 2 else self.game.shots_p2
+        shots[row][col] = 1
+        self.paint_game_board(canvas, board, True, player_number)
 
 
 if __name__ == "__main__":
