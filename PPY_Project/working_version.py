@@ -14,6 +14,10 @@ class BattleshipsGame:
         self.game_board_data_p2 = [[]]
         self.shots_p1 = [[]]
         self.shots_p2 = [[]]
+        self.ships_alive_p1 = None
+        self.ships_alive_p2 = None
+        self.leaderboard = {}
+        self.read_leaderboard_from_file("leaderboard.txt")
 
     def update_board_size(self, size):
         self.board_size = int(size)
@@ -66,6 +70,44 @@ class BattleshipsGame:
             for i in range(ship_size):
                 game_board[row + i][column] = 1
 
+    def shoot(self, row, col, player_number):
+        if self.ships_alive_p1 is None:
+            counter = 0
+            for i in self.fleet.keys():
+                for j in range(self.fleet[i]):
+                    counter += i
+            print(counter)
+            self.ships_alive_p1 = counter
+            self.ships_alive_p2 = counter
+
+        shots = self.shots_p1 if player_number == 2 else self.shots_p2
+        board_data = self.game_board_data_p1 if player_number == 1 else self.game_board_data_p2
+        shots[row][col] = 1
+
+        if board_data[row][col] == 1:
+            if player_number == 1:
+                self.ships_alive_p1 = self.ships_alive_p1 - 1
+            else:
+                self.ships_alive_p2 = self.ships_alive_p2 - 1
+
+            if (self.ships_alive_p1 if player_number == 1 else self.ships_alive_p2) == 0:
+                return True
+        return False
+
+    def if_already_shot(self, row, col, player_number):
+        shots = self.shots_p1 if player_number == 2 else self.shots_p2
+        return shots[row][col] == 1
+
+    def read_leaderboard_from_file(self, file_name):
+        try:
+            with open(file_name, 'r') as f:
+                lines = f.readlines()
+                for line in lines:
+                    s = line.split(' ')
+                    self.leaderboard[s[0]] = int(s[1])
+        except FileNotFoundError:
+            with open(file_name, 'w') as f:
+                return
 
 class GUI(Tk):
     def __init__(self, game):
@@ -413,14 +455,24 @@ class GUI(Tk):
         if not self.player_can_shoot:
             return
 
-        self.player_can_shoot = False
         cell_size = int(400 / self.game.board_size)
         col = event.x // cell_size
         row = event.y // cell_size
-        shots = self.game.shots_p1 if player_number == 2 else self.game.shots_p2
-        shots[row][col] = 1
-        self.paint_game_board(canvas, board, True, player_number)
+        if self.game.if_already_shot(row, col, player_number):
+            return
 
+        self.player_can_shoot = False
+        game_over = self.game.shoot(row, col, player_number)
+        self.paint_game_board(canvas, board, True, player_number)
+        if game_over:
+            self.game_over(player_number)
+
+    def game_over(self, player_number):
+        self.clear_frame()
+        self.geometry("")
+
+        label = Label(self, text="Game Over\nPlayer {} won!".format(player_number), justify="center", height=10)
+        label.pack()
 
 if __name__ == "__main__":
     game = BattleshipsGame()
