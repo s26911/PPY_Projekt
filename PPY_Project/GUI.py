@@ -4,6 +4,7 @@ from tkinter import messagebox
 from tkinter.ttk import Combobox, Treeview
 import copy
 from BattleshipsGame import BattleshipsGame
+from PC import PC
 
 
 class GUI(Tk):
@@ -251,6 +252,7 @@ class GUI(Tk):
         self.clear_frame()
         self.geometry("")
         self.unbind("<Key")
+        pc = PC(self.game.board_size, self.game.fleet)
         cell_size = int(400 / self.game.board_size)
 
         player_board_info = Label(self, text="Your board:")
@@ -263,8 +265,26 @@ class GUI(Tk):
         canvas_player.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         canvas_opp.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
-        next_button = Button(self, text="Next turn")
-        next_button.grid(column=0, row=3, columnspan=2, padx=10, pady=10)
+        self.paint_game_board(canvas_player, board_player, False, 1)
+        self.paint_game_board(canvas_opp, board_opp, True, 2)
+
+        canvas_opp.bind("<Button-1>",
+                        lambda event: self.shoot_player(event, canvas_opp, board_opp, 2))
+
+        save_game = Button(self, text="Save Game")
+        save_game.grid(column=0, row=3, padx=10, pady=10)
+        next_button = Button(self, text="Next turn", command=lambda: self.pc_game_next_turn(pc, canvas_player, board_player, canvas_opp, board_opp))
+        next_button.grid(column=1, row=3, padx=10, pady=10)
+
+    def pc_game_next_turn(self, pc, canvas_player, board_player, canvas_opp, board_opp):
+        row, col = pc.select_shoot_coordinates()
+        self.game.shoot(row, col, 1)
+        self.paint_game_board(canvas_player, board_player, False, 1)
+        self.paint_game_board(canvas_opp, board_opp, True, 2)
+        # if self.game.if_hit(row, col, 1):
+        #     pc.ship_in_focus = True
+        #     pc.last_hit = (row, col)
+        self.player_can_shoot = True
 
     def play_pvp_ui(self, player_number):
         self.clear_frame()
@@ -285,7 +305,7 @@ class GUI(Tk):
         canvas_opp.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
         canvas_opp.bind("<Button-1>",
-                        lambda event: self.shoot(event, canvas_opp, board_opp, 2 if player_number == 1 else 1))
+                        lambda event: self.shoot_player(event, canvas_opp, board_opp, 2 if player_number == 1 else 1))
 
         self.paint_game_board(canvas_player, board_player, False, player_number)
         self.paint_game_board(canvas_opp, board_opp, True, 2 if player_number == 1 else 1)
@@ -354,7 +374,9 @@ class GUI(Tk):
                         canvas.create_line(x1, y1, x2, y2, fill='gray', width=2)
                         canvas.create_line(x1, y2, x2, y1, fill='gray', width=2)
 
-    def shoot(self, event, canvas, board, player_number):
+    # def shoot_pc(self, event, canvas, board, player_number):
+
+    def shoot_player(self, event, canvas, board, player_number):
         if not self.player_can_shoot:
             return
 

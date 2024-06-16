@@ -73,7 +73,6 @@ class BattleshipsGame:
             for i in self.fleet.keys():
                 for j in range(self.fleet[i]):
                     counter += i
-            print(counter)
             self.ships_alive_p1 = counter
             self.ships_alive_p2 = counter
 
@@ -90,6 +89,10 @@ class BattleshipsGame:
             if (self.ships_alive_p1 if player_number == 1 else self.ships_alive_p2) == 0:
                 return True
         return False
+
+    def if_hit(self, row, col, player_number):
+        data = self.game_board_data_p1 if player_number == 1 else self.game_board_data_p2
+        return data[row][col] == 1
 
     def if_already_shot(self, row, col, player_number):
         shots = self.shots_p1 if player_number == 2 else self.shots_p2
