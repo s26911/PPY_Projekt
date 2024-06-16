@@ -10,8 +10,10 @@ class BattleshipsGame:
         self.pvp = True
         self.board_size = 10
         self.fleet = {5: 1, 4: 1, 3: 2, 2: 1}
-        self.game_board_p1 = [[]]  # 2-dimensional int array, 0:empty, 1:ship, 2:sunken
-        self.game_board_p2 = [[]]
+        self.game_board_data_p1 = [[]]  # 2-dimensional int array, 0:empty, 1:ship
+        self.game_board_data_p2 = [[]]
+        self.shots_p1 = [[]]
+        self.shots_p2 = [[]]
 
     def update_board_size(self, size):
         self.board_size = int(size)
@@ -56,7 +58,7 @@ class BattleshipsGame:
         return string
 
     def add_ship_to_board(self, row, column, ship_size, orientation, player_number):
-        game_board = self.game_board_p1 if player_number == 1 else self.game_board_p2
+        game_board = self.game_board_data_p1 if player_number == 1 else self.game_board_data_p2
         if orientation == "horizontal":
             for i in range(ship_size):
                 game_board[row][column + i] = 1
@@ -152,14 +154,16 @@ class GUI(Tk):
     def prepare_battleship_board_ui(self, board_size, player_number):
         self.clear_frame()
         self.geometry("")
+        self.game.shots_p1 = [[0 for _ in range(board_size)] for _ in range(board_size)]  # 0-unknown, 1-shot
+        self.game.shots_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
         if player_number == 1:
-            self.game.game_board_p1 = [[0 for _ in range(board_size)] for _ in range(board_size)]
+            self.game.game_board_data_p1 = [[0 for _ in range(board_size)] for _ in range(board_size)]
         else:
-            self.game.game_board_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
+            self.game.game_board_data_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
         self.available_fleet = copy.copy(self.game.fleet)  # fleet available to place on the board
 
         if not self.game.pvp:
-            self.game.game_board_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
+            self.game.game_board_data_p2 = [[0 for _ in range(board_size)] for _ in range(board_size)]
             self.computer_battleship_placement()
 
         # fleet info
@@ -235,7 +239,7 @@ class GUI(Tk):
     def can_place_ship(self, row, col, ship_size, orientation, player_number):
         if len(self.available_fleet) == 0:
             return False
-        game_board = self.game.game_board_p1 if player_number == 1 else self.game.game_board_p2
+        game_board = self.game.game_board_data_p1 if player_number == 1 else self.game.game_board_data_p2
         for i in range(ship_size):
             if orientation == "horizontal":
                 if col + i >= self.game.board_size or game_board[row][col + i] != 0:
@@ -336,6 +340,9 @@ class GUI(Tk):
         canvas_player.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         canvas_opp.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
+        self.paint_game_board(canvas_player, board_player, False, 1, 2)
+        self.paint_game_board(canvas_opp, board_opp, True, 2, 1)
+
         next_button = Button(self, text="Next turn",
                              command=lambda: self.show_player_change_ui(2 if player_number == 1 else 1))
         next_button.grid(column=0, row=3, columnspan=2, padx=10, pady=10)
@@ -368,6 +375,34 @@ class GUI(Tk):
 
         next_button.pack(side=BOTTOM)
         label.pack()
+
+    def paint_game_board(self, canvas, board, only_shots, player_number_ships, player_number_shots):
+        board_data = self.game.game_board_data_p1 if player_number_ships == 1 else self.game.game_board_data_p2
+        shots = self.game.shots_p1 if player_number_shots == 1 else self.game.shots_p2
+        cell_size = int(400 / self.game.board_size)
+        if only_shots:
+            for i in range(self.game.board_size):
+                for j in range(self.game.board_size):
+                    if shots[i][j] == 1:
+                        if board_data[i][j] == 1:
+                            canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
+                                               fill='red', font=("Arial", 16))
+                        else:
+                            canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
+                                               fill='gray', font=("Arial", 16))
+        else:
+            for i in range(self.game.board_size):
+                for j in range(self.game.board_size):
+                    cell = board[i][j]
+                    if board_data[i][j] == 1:
+                        canvas.itemconfig(cell, fill='black')
+                        if shots[i][j] == 1:
+                            canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
+                                               fill='red', font=("Arial", 16))
+
+                    elif shots[i][j] == 1:
+                        canvas.create_text(j * cell_size + cell_size / 2, i * cell_size + cell_size / 2, text="X",
+                                           fill='gray', font=("Arial", 16))
 
 
 if __name__ == "__main__":
