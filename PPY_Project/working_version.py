@@ -302,7 +302,22 @@ class GUI(Tk):
                 self.game.add_ship_to_board(row, col, i, orientation, 2)
 
     def play_solo_ui(self):
-        print("placeholder")
+        self.clear_frame()
+        self.geometry("")
+        cell_size = int(400 / self.game.board_size)
+
+        player_board_info = Label(self, text="Your board:")
+        opp_board_info = Label(self, text="Opponent's board:")
+        player_board_info.grid(column=0, row=1)
+        opp_board_info.grid(column=1, row=1)
+
+        canvas_player, board_player = self.init_canvas(cell_size)
+        canvas_opp, board_opp = self.init_canvas(cell_size)
+        canvas_player.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        canvas_opp.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+
+        next_button = Button(self, text="Next turn")
+        next_button.grid(column=0, row=3, columnspan=2, padx=10, pady=10)
 
     def play_pvp_ui(self, player_number):
         self.clear_frame()
