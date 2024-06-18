@@ -125,7 +125,7 @@ class GUI(Tk):
         (canvas.bind("<Motion>", lambda event:
         self.hover_color(event, canvas, cell_size, board, self.ship_size.get(), self.orientation)))
 
-        self.bind("<Key>", lambda event: self.rotate_ship(event, canvas, board, self.ship_size.get()))
+        self.bind_all("<MouseWheel>", lambda event: self.rotate_ship(event, canvas, board, self.ship_size.get()))
 
         # select ship to place
         ship_selector_cont = Frame(self)
@@ -228,11 +228,9 @@ class GUI(Tk):
                 canvas.itemconfig(item, fill=new_color)
 
     def rotate_ship(self, event, canvas, cells, ship_size):
-        if event.keysym in ["r", "R"]:
-            self.paint(self.last_hovered[0], self.last_hovered[1], canvas, cells, ship_size, self.orientation, "gray",
-                       "white")
-            self.orientation = "vertical" if self.orientation == "horizontal" else "horizontal"
-            self.force_paint = True
+        self.paint(self.last_hovered[0], self.last_hovered[1], canvas, cells, ship_size, self.orientation, "gray", "white")
+        self.orientation = "vertical" if self.orientation == "horizontal" else "horizontal"
+        self.force_paint = True
 
     def computer_battleship_placement(self):
         row = random.randint(0, self.game.board_size - 1)
