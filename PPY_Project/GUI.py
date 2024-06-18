@@ -125,7 +125,7 @@ class GUI(Tk):
         (canvas.bind("<Motion>", lambda event:
         self.hover_color(event, canvas, cell_size, board, self.ship_size.get(), self.orientation)))
 
-        self.bind_all("<MouseWheel>", lambda event: self.rotate_ship(event, canvas, board, self.ship_size.get()))
+        self.bind("<MouseWheel>", lambda event: self.rotate_ship(event, canvas, board, self.ship_size.get()))
 
         # select ship to place
         ship_selector_cont = Frame(self)
@@ -249,7 +249,7 @@ class GUI(Tk):
     def play_solo_ui(self):
         self.clear_frame()
         self.geometry("")
-        self.unbind("<Key")
+        self.unbind("<MouseWheel>")
         pc = PC(self.game.board_size, self.game.fleet)
         cell_size = int(400 / self.game.board_size)
 
@@ -287,6 +287,7 @@ class GUI(Tk):
     def play_pvp_ui(self, player_number):
         self.clear_frame()
         self.geometry("")
+        self.unbind("<MouseWheel>")
         self.player_can_shoot = True
         cell_size = int(400 / self.game.board_size)
 
