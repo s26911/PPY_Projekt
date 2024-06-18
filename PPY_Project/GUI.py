@@ -391,6 +391,9 @@ class GUI(Tk):
         if game_over:
             self.game_over(1 if player_number == 2 else 2)
 
+        if self.game.if_hit(row, col, player_number):
+            self.player_can_shoot = True
+
     def game_over(self, player_number):
         self.clear_frame()
         self.geometry("")
