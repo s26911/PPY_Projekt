@@ -23,10 +23,12 @@ class GUI(Tk):
     def start_menu_ui(self):
         self.clear_frame()
         self.geometry("300x200")
-        Button(self, text="Start new game", command=lambda: self.configure_game_ui()).pack(pady=5)
-        Button(self, text="Load game", command=self.load_save_ui).pack(pady=5)
-        Button(self, text="Show leaderboard", command=self.show_leaderboard_ui).pack(pady=5)
-        Button(self, text="Quit", command=self.quit_game).pack(pady=5)
+        button_container = Frame(self)
+        Button(button_container, text="Start new game", command=lambda: self.configure_game_ui()).pack(pady=2.5)
+        Button(button_container, text="Load game", command=self.load_save_ui).pack(pady=2.5)
+        Button(button_container, text="Show leaderboard", command=self.show_leaderboard_ui).pack(pady=2.5)
+        Button(button_container, text="Save and quit", command=self.quit_game).pack(pady=2.5)
+        button_container.place(in_=self, anchor="c", relx=.5, rely=.5)
 
     def clear_frame(self):
         for widget in self.winfo_children():

@@ -41,7 +41,7 @@ class BattleshipsGame:
             if size not in self.fleet.keys():
                 messagebox.showerror("Error", "Cannot remove ship not present in fleet.")
             elif self.fleet[size] - quantity < 0:
-                messagebox.showerror("Error", "Cannot remove more ships than are absent in fleet.")
+                messagebox.showerror("Error", "Cannot remove more ships than are present in fleet.")
             elif len(self.fleet) == 1 and self.fleet[size] - quantity <= 0:
                 messagebox.showerror("Error", "Fleet cannot be empty.")
             else:

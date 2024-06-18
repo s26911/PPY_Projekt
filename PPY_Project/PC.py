@@ -22,5 +22,3 @@ class PC:
                 row, col = random.randint(0, self.board_size - 1), random.randint(0, self.board_size - 1)
                 if self.shots[row][col] != 1:
                     return row, col
-
-
