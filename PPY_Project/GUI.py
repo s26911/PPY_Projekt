@@ -385,18 +385,15 @@ class GUI(Tk):
         if self.game.if_already_shot(row, col, player_number):
             return
 
-        self.player_can_shoot = False
         game_over = self.game.shoot(row, col, player_number)
         self.paint_game_board(canvas, board, True, player_number)
         if game_over:
             self.game_over(1 if player_number == 2 else 2)
-
-        if self.game.if_hit(row, col, player_number):
-            self.player_can_shoot = True
+        self.player_can_shoot = self.game.if_hit(row, col, player_number)
 
     def game_over(self, player_number):
         self.clear_frame()
-        self.geometry("")
+        self.geometry("250x250")
 
         label = Label(self, text="Player {} won!\nPlease input your name:".format(player_number), justify="center",
                       height=10)
@@ -437,7 +434,10 @@ class GUI(Tk):
         Label(self, text="Provide a name for a game save", justify="center").pack()
         name_input = Entry(self, justify="center")
         name_input.pack()
-        Button(self, text="Next", command=lambda: self.save_game(player_number, name_input.get())).pack()
+        buttons_container = Frame(self)
+        Button(buttons_container, text="Back", command=lambda: self.show_player_change_ui(player_number)).grid(row=0, column=0)
+        Button(buttons_container, text="Next", command=lambda: self.save_game(player_number, name_input.get())).grid(row=0, column=1)
+        buttons_container.pack()
 
     def save_game(self, player_number, name):
         if name not in self.game.list_game_saves():

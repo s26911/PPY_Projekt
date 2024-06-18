@@ -11,8 +11,7 @@ class BattleshipsGame:
         self.game_board_data_p2 = [[]]
         self.shots_p1 = [[]]
         self.shots_p2 = [[]]
-        self.ships_alive_p1 = None
-        self.ships_alive_p2 = None
+        self.ships_alive = None
         self.leaderboard = {}
         self.read_leaderboard_from_file("leaderboard.txt")
 
@@ -68,26 +67,24 @@ class BattleshipsGame:
                 game_board[row + i][column] = 1
 
     def shoot(self, row, col, player_number):
-        if self.ships_alive_p1 is None:
+        if self.ships_alive is None:
+            self.ships_alive = {}
             counter = 0
             for i in self.fleet.keys():
                 for j in range(self.fleet[i]):
                     counter += i
-            self.ships_alive_p1 = counter
-            self.ships_alive_p2 = counter
+            self.ships_alive[1] = counter
+            self.ships_alive[2] = counter
 
         shots = self.shots_p1 if player_number == 2 else self.shots_p2
         board_data = self.game_board_data_p1 if player_number == 1 else self.game_board_data_p2
         shots[row][col] = 1
 
         if board_data[row][col] == 1:
-            if player_number == 1:
-                self.ships_alive_p1 = self.ships_alive_p1 - 1
-            else:
-                self.ships_alive_p2 = self.ships_alive_p2 - 1
-
-            if (self.ships_alive_p1 if player_number == 1 else self.ships_alive_p2) == 0:
+            self.ships_alive[player_number] -= 1
+            if self.ships_alive[player_number] == 0:
                 return True
+
         return False
 
     def if_hit(self, row, col, player_number):
